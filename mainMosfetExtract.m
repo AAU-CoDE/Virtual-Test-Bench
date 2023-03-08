@@ -148,5 +148,8 @@ figure(11)
 cossFunc = @(x) cossVds(x);
 
 %% END
-output.
+output.mosfetModel = mosfetModel;
+output.rdsonFunc = rdsonFunc;
+output.rdsonTable = [tjFit',rdsonExtrac'];
+output.cossTable = [vdsPoints',cossPoints'];
 disp("LTSPICE EXTRACTION FINISHED")
