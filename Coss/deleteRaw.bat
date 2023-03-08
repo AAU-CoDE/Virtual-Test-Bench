@@ -1,0 +1,1 @@
+del "C:\Program Files\LTC\LTspiceXVII\XVIIx64.exe -b" "C:\Users\gd48aa\OneDrive - Aalborg Universitet\Documents\PhD CoDE\automatedDCDC\virtualTestBench\Coss\cossTestBench" /s /f /q
