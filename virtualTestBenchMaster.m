@@ -1,5 +1,6 @@
 %%% Extract Look-up table & function from LTSpice model of device
-clear all
+clear 
+close all
 
 %% Specify MOSFET Model 'mosfetmodel'.lib:
 mosfetModel = 'C2M0080120D';
@@ -41,23 +42,29 @@ nSampleTot = 25; % Nr of samples
 % Check whether pathfile already exists
 
 try
-    load('pathInfo.mat')
+    load('LTlibPathInfo.mat')
 catch
     % Set LTSPice library path (where you stored .lib files)
     % userDef.LTlibPath = 'C:\Users\gd48aa\OneDrive - Aalborg Universitet\Documents\LTspiceXVII\lib\SicMOSFET\Wolfspeed\';
     disp('Set LTSPice library path (where you store your .lib files)')
     LTlibPath = uigetdir('Set LTSPice library path'); 
-    userDef.LTlibPath = append(LTlibPath,'\');
+    save('LTlibPathInfo.mat','LTlibPath')
+end
 
+try
+    load('LTexePathInfo.mat')
+catch
     % Set LTSpice .exe path (where the application is installed - used for batch file generation)
     %LTexePath = 'C:\Program Files\LTC\LTspiceXVII\XVIIx86.exe';
     
     disp('Set LTSpice .exe path (where the application is installed - used for batch file generation)')
     [LTexeFile, LTexePath] = uigetfile('*.exe','Set LTSpice .exe path (XVIIx86.exe or similar)','C:\');
     LTexeFullPath = append(LTexePath,LTexeFile);
-    userDef.LTexePathBatch = replace(LTexeFullPath,'\','\\'); % Used with double backslash within Batch file
-    save('pathInfo.mat','userDef')
+    save('LTexePathInfo.mat','LTexeFullPath')
 end
+% Store in userDef
+userDef.LTlibPath = append(LTlibPath,'\');
+userDef.LTexePathBatch = replace(LTexeFullPath,'\','\\'); % Used with double backslash within Batch file
 % .subckt parse: Extract the nodes of the used model:
 userDef.mosfetModel = mosfetModel;
 userDef.mosfetNodeList = mosfetNodeExtract(userDef.LTlibPath,userDef.mosfetModel);
@@ -75,8 +82,7 @@ rdsonInterp = interp1(rdsonExtracted.Tj,rdsonExtracted.Rdson,tjInterp,'spline','
 % Write as analytical Function
 
 rdsonTjFunc =  cfit2functionHandle(rdsonTjFit);
-% Plot the Result 
-close all
+% Plot the Result
 figure(1)
     plot(rdsonExtracted.Tj,rdsonExtracted.Rdson,'*')
     hold on    
