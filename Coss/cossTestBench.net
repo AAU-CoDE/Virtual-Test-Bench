@@ -1,4 +1,4 @@
-* C:\Users\gd48aa\OneDrive - Aalborg Universitet\Documents\PhD CoDE\automatedDCDC\LTSpiceModelExtraction\Coss\cossTestBench.asc
+* C:\\Users\\gd48aa\\OneDrive - Aalborg Universitet\\Documents\\PhD CoDE\\automatedDCDC\\virtualTestBench\\Coss\\cossTestBench.net
 XU2  ds s s tj tj C2M0080120D
  V1 tj 0 {Tj}
                                                                                                                           VDC ds 0 {Vds}
@@ -7,7 +7,7 @@ XU2  ds s s tj tj C2M0080120D
                                                                                                                           .tran 0 {tsim} 0 1n
                                                                                                                      .param Vds = 1200
                                                                                                                        .param Vac = 25m
-                                                                                                                        .lib C:\Users\gd48aa\OneDrive - Aalborg Universitet\Documents\LTspiceXVII\lib\SicMOSFET\Wolfspeed\C2M0080120D.lib
+                                                                                                                        .lib C:\Users\gd48aa\OneDrive - Aalborg Universitet\Documents\LTspiceXVII\lib\SiCMOSFET\Wolfspeed\C2M0080120D.lib
   .param f = 1000000
                                                                                                                          .param tsim = {2/f}
                                                                                                                      .backanno

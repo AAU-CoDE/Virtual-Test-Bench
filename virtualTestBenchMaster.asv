@@ -2,7 +2,8 @@
 clear all
 
 %% Specify MOSFET Model 'mosfetmodel'.lib:
-mosfetModel = 'C2M0080120D';
+userDef.mosfetModel = 'C2M0080120D';
+
 
 %% Define Test Conditions
 
@@ -21,12 +22,6 @@ VdsMax = 1200; % Drain-Source Voltage Limit
 VdsMin = 1e-3; % Lower Voltage Limit
 nSampleTot = 25; % Nr of samples
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Delete 'pathinfo.mat' if you want to reset the paths, or add them
-%%% manually in section "Define LTSpice Paths"
-%%%
-%%% The rest below is automated, results will by in the struct 'output'
-%%%
 %% Automatically find working directory (No need to touch this)
     fullFilePath =  matlab.desktop.editor.getActiveFilename;
     startOfFileName = find(fullFilePath == '\',1,"last");
@@ -35,7 +30,7 @@ nSampleTot = 25; % Nr of samples
     cd(userDef.pathName)
     addpath(genpath(userDef.pathName))
 
-%% Define LTSpice Paths
+%% Define LTSpice Path & Model 
 % Collect paths & model to stuct to parse it to other functions as 'userDef'
 
 % Check whether pathfile already exists
@@ -46,9 +41,8 @@ catch
     % Set LTSPice library path (where you stored .lib files)
     % userDef.LTlibPath = 'C:\Users\gd48aa\OneDrive - Aalborg Universitet\Documents\LTspiceXVII\lib\SicMOSFET\Wolfspeed\';
     disp('Set LTSPice library path (where you store your .lib files)')
-    LTlibPath = uigetdir('Set LTSPice library path'); 
-    userDef.LTlibPath = append(LTlibPath,'\');
-
+    userDef.LTlibPath = uigetdir('Set LTSPice library path');
+    
     % Set LTSpice .exe path (where the application is installed - used for batch file generation)
     %LTexePath = 'C:\Program Files\LTC\LTspiceXVII\XVIIx86.exe';
     
@@ -56,13 +50,12 @@ catch
     [LTexeFile, LTexePath] = uigetfile('*.exe','Set LTSpice .exe path (XVIIx86.exe or similar)','C:\');
     LTexeFullPath = append(LTexePath,LTexeFile);
     userDef.LTexePathBatch = replace(LTexeFullPath,'\','\\'); % Used with double backslash within Batch file
-    save('pathInfo.mat','userDef')
+    save()
 end
 % .subckt parse: Extract the nodes of the used model:
-userDef.mosfetModel = mosfetModel;
 userDef.mosfetNodeList = mosfetNodeExtract(userDef.LTlibPath,userDef.mosfetModel);
 
-
+%%% The rest below is automated, results will by in the struct 'output' %%%
 %% Extract Parameters: Rdson(Tj)
 % Sweep
 rdsonExtracted = rdsonTjExtraction(Id,Vgs,Tj_array,userDef);
@@ -72,9 +65,11 @@ tjInterp = linspace(rdsonExtracted.Tj(1),rdsonExtracted.Tj(end),1000);
 rdsonInterp = interp1(rdsonExtracted.Tj,rdsonExtracted.Rdson,tjInterp,'spline','extrap');
 % Curve fit
 [rdsonTjFit, rdsonR2] = fitThisCurve(tjInterp,rdsonInterp,0.999); % fitThisCurve will try to find the best possible fit with Matlabs standard cf functions
-% Write as analytical Function
+
+%% Write as analytical Function
 
 rdsonTjFunc =  cfit2functionHandle(rdsonTjFit);
+%%
 % Plot the Result 
 close all
 figure(1)
@@ -155,7 +150,7 @@ figure(4)
     hold on
     semilogy(vdsVec,cossVdsFunc(vdsVec)*1e12)
     grid on
-    title(append("Coss(Vds), ",userDef.mosfetModel))
+    title(append("Coss(Vds), ",userDefmosfetModel))
     ylim([1 10000])
     xlabel("Drain-Source Voltage [V]")
     ylabel("Output Capacitance[pF]")

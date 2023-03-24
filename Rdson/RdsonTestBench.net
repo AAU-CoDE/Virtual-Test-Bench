@@ -1,11 +1,11 @@
-* C:\Users\gd48aa\OneDrive - Aalborg Universitet\Documents\PhD CoDE\automatedDCDC\LTSpiceModelExtraction\Rdson\RdsonTestBench.asc
+* C:\\Users\\gd48aa\\OneDrive - Aalborg Universitet\\Documents\\PhD CoDE\\automatedDCDC\\virtualTestBench\\Rdson\\RdsonTestBench.net
 L1 0 ds 120
   XU2  ds g 0 tj tj C2M0080120D
  V2 tj 0 {Tj}
   V1 g 0 20
   B1 Rdson 0 V=V(ds)/{id}
  .ic I(L1) = {id}
-  .lib C:\Users\gd48aa\OneDrive - Aalborg Universitet\Documents\LTspiceXVII\lib\SicMOSFET\Wolfspeed\C2M0080120D.lib
+  .lib C:\Users\gd48aa\OneDrive - Aalborg Universitet\Documents\LTspiceXVII\lib\SiCMOSFET\Wolfspeed\C2M0080120D.lib
   .param id = 20
  .param Tj = 150.1
  .tran 0 10n 0 0.1n
