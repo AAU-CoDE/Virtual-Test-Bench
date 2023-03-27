@@ -8,7 +8,7 @@ function createCossVdsNetlist(fcoss,Vds,cossPath,netlistFilename,userDef)
     ltspiceFilename = replace(netlist,'.net','.asc');
 
     % Mosfet Model
-    mosfetPath = replace(append(userDef.LTlibPath,userDef.mosfetModel),'\','\\');
+    mosfetPath = replace(append(userDef.LTlibPath,userDef.mosfetFileName),'\','\\');
     % Mosfet Model Parse (Make as standalone function in the future)
    % .subckt port parse 
     if contains(userDef.mosfetModel,'G3R') == 1 % Encrypted, can't be parsed
