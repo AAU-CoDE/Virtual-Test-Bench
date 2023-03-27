@@ -1,9 +1,9 @@
 # Virtual-Test-Bench
-Extract MOSFET datasheet parameters from a SPICE model
+Extract MOSFET datasheet parameters from a SPICE model. Currently supports Rdson(Tj) & Coss(vds)
 
 # Path picker
 First time running the simulation, pick the path to the directory where the device model .lib file is stored. This path will be saved as "LTlibPathInfo.mat".
-If the path is changed, delete LTlibPathInfo.mat and select the new path.
+If the path is changed, delete LTlibPathInfo.mat and select the new path, or change it through the dialogue.
 
 Afterwards, select the path of the LTSpice executable, preferrably XVIIx86.exe.
   
