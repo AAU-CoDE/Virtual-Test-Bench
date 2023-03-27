@@ -2,32 +2,30 @@
 clear 
 close all
 
-%% Specify MOSFET Model 'mosfetmodel'.lib:
-mosfetModel = 'C2M0080120D';
+%% Specify MOSFET Model Filename 'mosfetFileName'.lib:
+mosfetFileName = 'C2M0080120D'; % Specify the name of the .lib file, as found in your directory. (without .lib)
 
 %% Define Test Conditions
 
-% Rdson
-% Define Test Conditions  
+% Rdson - Test Conditions
 Vgs = 20;  % Gate-Source Voltage
 Id = 20; % Drain Current
 % Temperature Range
 Tj_array = 0.1:25:175;
 
-% Coss
-% Define Test Conditions
+% Coss - Test Conditions
 fcoss = 1e6; % 1MHz -  AC frequency
 
 VdsMax = 1200; % Drain-Source Voltage Limit
 VdsMin = 1e-3; % Lower Voltage Limit
 nSampleTot = 25; % Nr of samples
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Delete 'pathinfo.mat' if you want to reset the paths, or add them
-%%% manually in section "Define LTSpice Paths"
-%%%
-%%% The rest below is automated, results will by in the struct 'output'
-%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Delete 'pathinfo.mat' if you want to reset the paths, or add them   %%%
+%%% manually in section "Define LTSpice Paths"                          %%%
+%%%                                                                     %%%
+%%% The rest below is automated, results will by in the struct 'output' %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Automatically find working directory (No need to touch this)
     fullFilePath =  matlab.desktop.editor.getActiveFilename;
     startOfFileName = find(fullFilePath == '\',1,"last");
@@ -39,8 +37,21 @@ nSampleTot = 25; % Nr of samples
 %% Define LTSpice Paths
 % Collect paths & model to stuct to parse it to other functions as 'userDef'
 
+% Check wether device was changes to different path
+modelChange = input('Did you change the model to a different path? [Y/N] (Press ENTER to skip)',"s" );
+if isempty(modelChange)
+    modelChange = 'N';
+end
+switch modelChange
+    case {'Y','y',0}
+        delete("LTlibPathInfo.mat")
+    case {'N','n',1}
+        disp(append('The device model ',mosfetFileName,' will be extracted'))
+    otherwise 
+       disp("Invalid Answer.");
+end
+            
 % Check whether pathfile already exists
-
 try
     load('LTlibPathInfo.mat')
 catch
@@ -65,9 +76,13 @@ end
 % Store in userDef
 userDef.LTlibPath = append(LTlibPath,'\');
 userDef.LTexePathBatch = replace(LTexeFullPath,'\','\\'); % Used with double backslash within Batch file
+
+
 % .subckt parse: Extract the nodes of the used model:
-userDef.mosfetModel = mosfetModel;
-userDef.mosfetNodeList = mosfetNodeExtract(userDef.LTlibPath,userDef.mosfetModel);
+
+userDef.mosfetFileName = mosfetFileName;
+userDef.mosfetModel = subcktNameFinder(userDef.LTlibPath,mosfetFileName);
+userDef.mosfetNodeList = mosfetNodeExtract(userDef.LTlibPath,userDef.mosfetFileName,userDef.mosfetModel);
 
 
 %% Extract Parameters: Rdson(Tj)
@@ -179,6 +194,7 @@ output.cossExtract = [cossExtracted.Vds',cossExtracted.Coss'];
 output.cossTable = [vdsVec',cossVdsFunc(vdsVec)'];
 output.qossTable = [vdsVec',qossVec'];
 
+disp("EXTRACTION FINISHED")
 %% Future Work
 % Expandable: Thermal Impedance?
 
