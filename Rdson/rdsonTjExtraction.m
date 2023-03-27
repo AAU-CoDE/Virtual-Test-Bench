@@ -23,6 +23,9 @@ function rdsonExtracted = rdsonTjExtraction(Id,Vgs,Tj_array,userDef)
 % userDef.LTexePathBatch: Path to the .exe file of LTSpice, with double
 % backslashes 
 %
+% userDef.mosfetFileName: Name of the Mosfet .lib file as stored in the
+% directory.
+%
 % userDef.mosfetModel: Name of the device. The relevant LTSpice .lib model
 % should be stored as 'mosfetModel.lib'
 %
