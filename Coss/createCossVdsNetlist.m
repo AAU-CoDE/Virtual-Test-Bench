@@ -42,9 +42,20 @@ function createCossVdsNetlist(fcoss,Vds,cossPath,netlistFilename,userDef)
                             ];
     
     %%% Save .net file
-    fid = fopen(netlist, 'w+');
-    fprintf(fid,cossTestBenchNetlist);
-    fid = fclose(fid);
+    
+    fidFailCount = 0;
+    for fidFailCount = 1:5
+        try
+            fid = fopen(netlist, 'w+');
+            fprintf(fid,cossTestBenchNetlist);
+            fid = fclose(fid);
+            break
+        catch
+            if fidFailCount == 5
+                disp("Netlist manipulation failed.")
+            end
+        end
+    end
 
 
 end
