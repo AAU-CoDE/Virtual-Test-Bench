@@ -161,7 +161,7 @@ a = qossFitParams(1);
 b = qossFitParams(2);
 c = qossFitParams(3);
 % As Analytical Function Qoss(vds)
-qossVdsFunc = @(x) 2.*a.*b.*sqrt((b + x)/b) + c.*x.^2./2;
+qossVdsFunc = @(x) 2.*a.*b.*sqrt((b + x)/b) + c.*x.^2./2 - 2.*a.*b;
 % Derivative for Coss(vds)
 cossVdsFunc = @(x) a./(1 + x./b).^0.5 + c.*x;
 
