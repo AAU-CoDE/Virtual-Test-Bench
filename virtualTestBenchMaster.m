@@ -3,7 +3,7 @@ clear
 close all
 
 %% Specify MOSFET Model Filename 'mosfetFileName'.lib:
-mosfetFileName = 'C2M0080120D'; % Specify the name of the .lib file, as found in your directory. (without .lib)
+mosfetFileName = 'G3R12MT12K'; % Specify the name of the .lib file, as found in your directory. (without .lib)
 
 %% Define Test Conditions
 
@@ -17,8 +17,9 @@ Tj_array = 0.1:25:175;
 fcoss = 1e6; % 1MHz -  AC frequency
 
 VdsMax = 1200; % Drain-Source Voltage Limit
-VdsMin = 1e-3; % Lower Voltage Limit
+VdsMin = 1e-2; % Lower Voltage Limit
 nSampleTot = 25; % Nr of samples
+%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Delete 'pathinfo.mat' if you want to reset the paths, or add them   %%%
@@ -26,6 +27,7 @@ nSampleTot = 25; % Nr of samples
 %%%                                                                     %%%
 %%% The rest below is automated, results will by in the struct 'output' %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %% Automatically find working directory (No need to touch this)
     fullFilePath =  matlab.desktop.editor.getActiveFilename;
     startOfFileName = find(fullFilePath == '\',1,"last");
@@ -38,7 +40,7 @@ nSampleTot = 25; % Nr of samples
 % Collect paths & model to stuct to parse it to other functions as 'userDef'
 
 % Check wether device was changes to different path
-modelChange = input('Did you change the model to a different path? [Y/N] (Press ENTER to skip)',"s" );
+modelChange = input('Did you change the .lib file of the model to a different path? [Y/N] (Press ENTER or N, if path is unchanged)',"s" );
 if isempty(modelChange)
     modelChange = 'N';
 end
@@ -115,8 +117,7 @@ figure(1)
     
 % Sweep
 cossExtracted = cossVdsExtraction(fcoss,[VdsMin, VdsMax],nSampleTot,userDef);
-            
-disp("COSS EXTRACTION FINISHED")
+
 % Plot 
 figure(2)
     semilogy(cossExtracted.Vds,cossExtracted.Coss.*1e12,'x')
@@ -167,7 +168,6 @@ cossVdsFunc = @(x) a./(1 + x./b).^0.5 + c.*x;
 
 
 figure(3)
-    plot(cossExtracted.Vds,qossLT*1e6,'*')
     plot(cossExtracted.VdsValid,qossLT*1e6,'*')
     hold on
     plot(vdsVec,qossVec*1e6)
