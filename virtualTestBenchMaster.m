@@ -126,12 +126,20 @@ figure(2)
     xlabel("Drain-Source Voltage [V]")
     ylabel("Output Capacitance [pF]")
 
-% Qoss (Numerical Integration)
-qossLT = cumtrapz(cossExtracted.Vds,cossExtracted.Coss);
+%% Qoss (Numerical Integration)
+
+% Ignore values bigger than 1uF;
+largeCossIdx = cossExtracted.Coss > 1e-6;
+cossExtracted.CossValid = cossExtracted.Coss;
+cossExtracted.VdsValid = cossExtracted.Vds;
+cossExtracted.CossValid(largeCossIdx) = [];
+cossExtracted.VdsValid(largeCossIdx) = [];
+% Numerical Integration
+qossLT = cumtrapz(cossExtracted.VdsValid,cossExtracted.CossValid);
 
 % Interpolation of Qoss(Vds)
 vdsVec = cossExtracted.Vds(1):0.01:cossExtracted.Vds(end);
-qossVec = interp1(cossExtracted.Vds,qossLT,vdsVec,"pchip","extrap");
+qossVec = interp1(cossExtracted.VdsValid,qossLT,vdsVec,"pchip","extrap");
 
 % Define Fit Function
 qossFitFunc = fittype( '2.*a.*b.*sqrt((b + x)/b) + c.*x.^2./2;',...
@@ -160,6 +168,7 @@ cossVdsFunc = @(x) a./(1 + x./b).^0.5 + c.*x;
 
 figure(3)
     plot(cossExtracted.Vds,qossLT*1e6,'*')
+    plot(cossExtracted.VdsValid,qossLT*1e6,'*')
     hold on
     plot(vdsVec,qossVec*1e6)
     plot(vdsVec,qossVdsFunc(vdsVec)*1e6)
