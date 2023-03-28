@@ -84,24 +84,33 @@ function cossExtracted = cossVdsExtraction(fcoss,VdsLims,nSampleTot,userDef);
         [status,cmdout] = dos(append(cossPath,'cossLTspiceCall.bat'));        
         % Extract Data
         simStart = 0;
-        while simStart == 0
-            pause(0.5)
-            % Read .raw file for the first time
-            try
-               rawData(sweepNr) = LTspice2Matlab(append(cossPath,ltFilename,'.raw'));
-            catch
-                pause(5)
-                rawData(sweepNr) = LTspice2Matlab(append(cossPath,ltFilename,'.raw'));
-            end
-            % Check whether simulation has started (by checking Vds)
-            VdsSim = LTretrieve("V(ds)",rawData(sweepNr));
-            if sweepNr > 1
-                VdsTest =  Vds_array(sweepNr-1);
-            else 
-                VdsTest = 0;
-            end
-            if VdsSim > VdsTest
-                simStart = 1;
+        while simStart == 0          
+            % Read .raw file for the first time            
+            for readRawAttempts = 1:12                
+                try
+                   pause(5)
+                   rawData(sweepNr) = LTspice2Matlab(append(cossPath,ltFilename,'.raw'));                   
+                   
+                catch
+                    
+                    if readRawAttempts > 12
+                        disp("Error reading .raw file")
+                        return
+                    end
+                end
+                
+                % Check whether simulation has started (by checking Vds)
+                VdsSim = LTretrieve("V(ds)",rawData(sweepNr));
+                if sweepNr > 1
+                    VdsTest =  Vds_array(sweepNr-1);
+                else 
+                    VdsTest = 0;
+                end
+                
+                if VdsSim >= VdsTest
+                    simStart = 1;
+                    break
+                end
             end
         end
         % Check whether simulation is done 
