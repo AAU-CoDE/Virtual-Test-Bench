@@ -34,7 +34,9 @@ function rdsonExtracted = rdsonTjExtraction(Id,Vgs,Tj_array,userDef)
 %
 % In future version, it will be extended to be able to sweep Id & Vgs as
 % well.
-
+    % Some Context
+    disp("Rdson(Tj) extraction started")
+    
     % Set Rdson path
     rdsonPath = append(userDef.pathName,'Rdson\');
     ltFilename = 'RdsonTestBench';
@@ -57,7 +59,7 @@ function rdsonExtracted = rdsonTjExtraction(Id,Vgs,Tj_array,userDef)
         % Write netlist with updated parameters
         createRdsonTjNetlist(Id,Vgs,Tj,rdsonBatchPath,netlistFilename,userDef)
         % Run LTSpice/Call batch file
-        dos(append(rdsonPath,'rdsonLTspiceCall.bat'));
+       [status,cmdout] =  dos(append(rdsonPath,'rdsonLTspiceCall.bat'));
 
         % Extract Data
         simStart = 0;
@@ -74,6 +76,7 @@ function rdsonExtracted = rdsonTjExtraction(Id,Vgs,Tj_array,userDef)
             TjSim = LTretrieve("V(tj)", rawData(sweepNr));
             if abs(TjSim(1) - Tj)/TjSim(1) < reltoltj
                 simStart = 1;
+
             end
         end
         % Check whether simulation is done 
@@ -83,13 +86,16 @@ function rdsonExtracted = rdsonTjExtraction(Id,Vgs,Tj_array,userDef)
             rawData(sweepNr) = LTspice2Matlab(append(rdsonPath,ltFilename,'.raw'));
         end
         
-                % Extract Variables    
-                Rdson = LTretrieve("V(rdson)",rawData(sweepNr));
-               
-                % Build Struct
-                rdsonExtracted.Rdson(sweepNr) = Rdson(end);
-                rdsonExtracted.Id(sweepNr) = Id;
-                rdsonExtracted.Vgs(sweepNr) = Vgs;
-                rdsonExtracted.Tj(sweepNr) = Tj;
-            end
+        % Extract Variables    
+        Rdson = LTretrieve("V(rdson)",rawData(sweepNr));
+       
+        % Build Struct
+        rdsonExtracted.Rdson(sweepNr) = Rdson(end);
+        rdsonExtracted.Id(sweepNr) = Id;
+        rdsonExtracted.Vgs(sweepNr) = Vgs;
+        rdsonExtracted.Tj(sweepNr) = Tj;
+        % Some Context
+        disp(append("Rdson(", sprintf('%.1f',Tj)," degC): ", sprintf('%.1f',Rdson(end)*1e3), " mΩ"))
+    end
+        disp("Rdson(Tj) extraction finished")
 end
