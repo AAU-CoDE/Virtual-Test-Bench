@@ -25,58 +25,63 @@ function cossExtracted = cossVdsExtraction(fcoss,VdsLims,nSampleTot,userDef);
 % userDef.LTexePathBatch: Path to the .exe file of LTSpice, with double
 % backslashes 
 %
+%
+% userDef.mosfetFileName: Name of the Mosfet .lib file as stored in the
+% directory.
+%
 % userDef.mosfetModel: Name of the device. The relevant LTSpice .lib model
 % should be stored as 'mosfetModel.lib'
 %
 % userDef.mosfetNodeList: The node list of the LTSpice model. Can change
 % depending on model complexity.
 
-% Drain-Source Voltage Range
-VdsLimsLength = length(VdsLims);
-switch VdsLimsLength
-    case  1       
-        VdsMin = 1e3;
-        VdsMax = VdsLims(1);
-    case 2
-        VdsMin = VdsLims(1);
-        VdsMax = VdsLims(2);
-    otherwise
-        disp('Invalid drain-source voltage range provided. Default 1mv - 650V is set')
-        VdsMin = 1e-3;
-        VdsMax = 650;
-end
-% Based on these values, the voltage sample array is created with log-spacing in the low voltage range to capture the non-linearity 
+    % Some Context
+    disp("Coss(vds) extraction started")
+    % Drain-Source Voltage Range
+    VdsLimsLength = length(VdsLims);
+    switch VdsLimsLength
+        case  1       
+            VdsMin = 1e3;
+            VdsMax = VdsLims(1);
+        case 2
+            VdsMin = VdsLims(1);
+            VdsMax = VdsLims(2);
+        otherwise
+            disp('Invalid drain-source voltage range provided. Default 1mv - 650V is set')
+            VdsMin = 1e-3;
+            VdsMax = 650;
+    end
+    % Based on these values, the voltage sample array is created with log-spacing in the low voltage range to capture the non-linearity 
     % First few samples (20%) should be in log (up to 1% of Vds Max)
-nSampleLog = ceil(nSampleTot*0.20);
-Vds_arrayLV = logspace(log10(VdsMin),log10(VdsMax*0.01),nSampleLog); % "low" voltage sample points
-
-% Last half of sample points should be linearily spaced
-Vds_arrayHV = linspace(VdsMax*0.01,VdsMax,nSampleTot-nSampleLog); % "high" voltage sample points
-Vds_array = [Vds_arrayLV, Vds_arrayHV(2:end)]; % combine drain-source voltage sample points
-
-% Set Coss path
+    nSampleLog = ceil(nSampleTot*0.20);
+    Vds_arrayLV = logspace(log10(VdsMin),log10(VdsMax*0.01),nSampleLog); % "low" voltage sample points
+    
+    % Last half of sample points should be linearily spaced
+    Vds_arrayHV = linspace(VdsMax*0.01,VdsMax,nSampleTot-nSampleLog); % "high" voltage sample points
+    Vds_array = [Vds_arrayLV, Vds_arrayHV(2:end)]; % combine drain-source voltage sample points
+    
+    % Set Coss path
     cossPath = append(userDef.pathName,'Coss\');
     ltFilename = 'cossTestBench';
     netlistFilename = append(ltFilename,'.net');
     cossBatchPath = replace(cossPath,'\','\\'); % Batch file needs double backslash
     
-% Write .bat file
+    % Write .bat file
     batchFileName = "cossLTspiceCall.bat";
     rdsonBatchFile = ['start "LTSpice" "' userDef.LTexePathBatch '" -b "' append(cossBatchPath,netlistFilename) '" -alt'];
     
     fidBatch = fopen(append(cossPath,batchFileName), 'w+');
     fprintf(fidBatch,rdsonBatchFile);
     fidBatch = fclose(fidBatch);
-
- % Sweep Vds values
+    
+     % Sweep Vds values
     reltolvds = 1e-3;
     for sweepNr = 1:numel(Vds_array)
-        Vds = Vds_array(sweepNr);
+       Vds = Vds_array(sweepNr);
        % Write netlist with updated parameters
         createCossVdsNetlist(fcoss,Vds,cossBatchPath,netlistFilename,userDef)
         % Run LTSpice/Call batch file
-        dos(append(cossPath,'cossLTspiceCall.bat'));
-         
+        [status,cmdout] = dos(append(cossPath,'cossLTspiceCall.bat'));        
         % Extract Data
         simStart = 0;
         while simStart == 0
@@ -137,7 +142,7 @@ Vds_array = [Vds_arrayLV, Vds_arrayHV(2:end)]; % combine drain-source voltage sa
         %phaseAngle = pi/2;
         % Impedance
         Z = VacMax/IacAmp;
-        Coss = 1/(cos(pi/2 - phaseAngle)*Z*2*pi*fcoss)
+        Coss = 1/(cos(pi/2 - phaseAngle)*Z*2*pi*fcoss);
 
 
         % Build Struct
@@ -158,5 +163,8 @@ Vds_array = [Vds_arrayLV, Vds_arrayHV(2:end)]; % combine drain-source voltage sa
 %         cossIterVec(sweepNr).Iac = Iac;
 %         cossIterVec(sweepNr).Vac = Vac;
 %         cossIterVec(sweepNr).t = t;
+        % Some Context
+        disp(append("Coss(", sprintf('%.1f',Vds)," V): ", sprintf('%.1f',Coss*1e12), " pF"))
     end
+        disp("Coss(vds) extraction finished")
 end    
