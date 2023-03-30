@@ -1,209 +1,50 @@
 %%% Extract Look-up table & function from LTSpice model of device
+%% Initialize
 clear 
 close all
+warning off
 
 %% Specify MOSFET Model Filename 'mosfetFileName'.lib:
 
-% mosfetFileName = 'CoolSiC_MOSFET_1700V_G1_IMBF170RxxxM1_450-1000mOhm'; % Specify the name of the .lib file, as found in your directory. (without .lib)
-mosfetFileName = 'C2M0160120D - Packaged';
-%% Define Test Conditions
+%     userDef. mosfetLibFileName = 'CoolSiC_MOSFET_1700V_G1_IMBF170RxxxM1_450-1000mOhm'; % Specify the name of the .lib file, as found in your directory. (without .lib)
+userDef.mosfetLibFileName = 'C2M0160120D - Packaged';
 
+% If .lib file name is different from model file name (after .subckt
+% statement within .lib file), or .lib file contains several models, but you know which model you want to extract, you can define the model name here and skip the dialogue 
+userDef.mosfetModel = 'C2M0160120D';
+
+%% Set up paths
+% Automatically find working directory (No need to touch this)
+userDef.pathName = setWorkingDir;
+% Define LTSpice Paths
+[userDef.mosfetLibFileName, userDef.LTlibPath] = setSpiceLibPath(userDef.mosfetLibFileName);
+userDef.LTexePathBatch = setLTexePath;
+% .subckt parse: Extract the nodes of the used model:
+userDef.mosfetModel = subcktNameFinder(userDef);
+userDef.mosfetNodeList = mosfetNodeExtract(userDef.LTlibPath,userDef.mosfetLibFileName,userDef.mosfetModel);
+userDef.nodeListGeneral = generalizeNodeList(userDef.mosfetNodeList);
+
+%% Extract Parameters: Rdson(Tj)
 % Rdson - Test Conditions
 Vgs = 20;  % Gate-Source Voltage
 Id = 20; % Drain Current
 % Temperature Range
 Tj_array = 0.1:25:175;
 
+plotOn = 1; % Want a plot? 1 = Yes, 0 = No
+rdson = rdsonTjTestBench(Id,Vgs,Tj_array,userDef,plotOn);
+
+%% Coss(Vds)/Qoss(Vds)
 % Coss - Test Conditions
 fcoss = 1e6; % 1MHz -  AC frequency
-
 VdsMax = 1200; % Drain-Source Voltage Limit
 VdsMin = 1e-2; % Lower Voltage Limit
 nSampleTot = 25; % Nr of samples
+
+plotOn = 1; % Want a plot? 1 = Yes, 0 = No
+coss = cossVdsTestBench(fcoss,[VdsMin,VdsMax],nSampleTot,userDef,plotOn);
+
 %%
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Delete 'pathinfo.mat' if you want to reset the paths, or add them   %%%
-%%% manually in section "Define LTSpice Paths"                          %%%
-%%%                                                                     %%%
-%%% The rest below is automated, results will by in the struct 'output' %%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%% Automatically find working directory (No need to touch this)
-    fullFilePath =  matlab.desktop.editor.getActiveFilename;
-    startOfFileName = find(fullFilePath == '\',1,"last");
-    userDef.pathName = fullFilePath(1:startOfFileName);
-    % Add relevant folders to path
-    cd(userDef.pathName)
-    addpath(genpath(userDef.pathName))
-
-%% Define LTSpice Paths
-% Collect paths & model to stuct to parse it to other functions as 'userDef'
-
-% Check wether device was changes to different path
-modelChange = input('Did you change the .lib file of the model to a different path? [Y/N] (Press ENTER or N, if path is unchanged)',"s" );
-if isempty(modelChange)
-    modelChange = 'N';
-end
-switch modelChange
-    case {'Y','y',0}
-        delete("LTlibPathInfo.mat")
-    case {'N','n',1}
-        disp(append('The device model ',mosfetFileName,' will be extracted'))
-    otherwise 
-       disp("Invalid Answer.");
-end
-            
-% Check whether pathfile already exists
-try
-    load('LTlibPathInfo.mat')
-catch
-    % Set LTSPice library path (where you stored .lib files)
-    % userDef.LTlibPath = 'C:\Users\gd48aa\OneDrive - Aalborg Universitet\Documents\LTspiceXVII\lib\SicMOSFET\Wolfspeed\';
-    disp('Set LTSPice library path (where you store your .lib files)')
-    LTlibPath = uigetdir('Set LTSPice library path'); 
-    save('LTlibPathInfo.mat','LTlibPath')
-end
-
-try
-    load('LTexePathInfo.mat')
-catch
-    % Set LTSpice .exe path (where the application is installed - used for batch file generation)
-    %LTexePath = 'C:\Program Files\LTC\LTspiceXVII\XVIIx86.exe';
-    
-    disp('Set LTSpice .exe path (where the application is installed - used for batch file generation)')
-    [LTexeFile, LTexePath] = uigetfile('*.exe','Set LTSpice .exe path (XVIIx86.exe or similar)','C:\');
-    LTexeFullPath = append(LTexePath,LTexeFile);
-    save('LTexePathInfo.mat','LTexeFullPath')
-end
-% Store in userDef
-userDef.LTlibPath = append(LTlibPath,'\');
-userDef.LTexePathBatch = replace(LTexeFullPath,'\','\\'); % Used with double backslash within Batch file
-
-
-% .subckt parse: Extract the nodes of the used model:
-
-userDef.mosfetFileName = mosfetFileName;
-userDef.mosfetModel = subcktNameFinder(userDef.LTlibPath,mosfetFileName);
-userDef.mosfetNodeList = mosfetNodeExtract(userDef.LTlibPath,userDef.mosfetFileName,userDef.mosfetModel);
-userDef.nodeListGeneral = generalizeNodeList(userDef.mosfetNodeList);
-
-%% Extract Parameters: Rdson(Tj)
-% Sweep
-rdsonExtracted = rdsonTjExtraction(Id,Vgs,Tj_array,userDef);
-
-% Interpolate Points    
-tjInterp = linspace(rdsonExtracted.Tj(1),rdsonExtracted.Tj(end),1000);
-rdsonInterp = interp1(rdsonExtracted.Tj,rdsonExtracted.Rdson,tjInterp,'spline','extrap');
-% Curve fit
-[rdsonTjFit, rdsonR2] = fitThisCurve(tjInterp,rdsonInterp,0.999); % fitThisCurve will try to find the best possible fit with Matlabs standard cf functions
-% Write as analytical Function
-
-rdsonTjFunc =  cfit2functionHandle(rdsonTjFit);
-% Plot the Result
-figure(1)
-    plot(rdsonExtracted.Tj,rdsonExtracted.Rdson,'*')
-    hold on    
-    grid on
-    plot(tjInterp,rdsonInterp,'Color','b')
-    plot(rdsonTjFit)
-    
-    hold off
-    ylabel('Rdson')
-    xlabel('Tj')
-    title(append('Rdson(Tj) of  ',userDef.mosfetModel,' Id = ',num2str(Id),'A'))
-    legend("Extracted Points","Interpolated Points","Curve-fitted Points")
-
-%% Coss(Vds)/Qoss(Vds)
-    
-% Sweep
-cossExtracted = cossVdsExtraction(fcoss,[VdsMin, VdsMax],nSampleTot,userDef);
-
-% Plot 
-figure(2)
-    semilogy(cossExtracted.Vds,cossExtracted.Coss.*1e12,'x')
-    grid on
-    title(append("Coss(Vds), ",userDef.mosfetModel))
-    ylim([1 10000])
-    xlabel("Drain-Source Voltage [V]")
-    ylabel("Output Capacitance [pF]")
-
-%% Qoss (Numerical Integration)
-
-% Ignore values bigger than 1uF;
-largeCossIdx = cossExtracted.Coss > 1e-6;
-cossExtracted.CossValid = cossExtracted.Coss;
-cossExtracted.VdsValid = cossExtracted.Vds;
-cossExtracted.CossValid(largeCossIdx) = [];
-cossExtracted.VdsValid(largeCossIdx) = [];
-% Numerical Integration
-qossLT = cumtrapz(cossExtracted.VdsValid,cossExtracted.CossValid);
-
-% Interpolation of Qoss(Vds)
-vdsVec = cossExtracted.Vds(1):0.01:cossExtracted.Vds(end);
-qossVec = interp1(cossExtracted.VdsValid,qossLT,vdsVec,"pchip","extrap");
-
-% Define Fit Function
-qossFitFunc = fittype( '2.*a.*b.*sqrt((b + x)/b) + c.*x.^2./2;',...
-    'dependent',{'y'},'independent',{'x'},...
-    'coefficients',{'a','b','c'});
- % Fit Options
-    fitopt = fitoptions(qossFitFunc);
-    fitopt.Lower = [1e-15 1e-3 1e-15];
-    fitopt.Upper = [1e-7 1 1e-7];
-    fitopt.DiffMinChange = 1e-16;
-    fitopt.TolFun = 1e-16;
-    fitopt.MaxFunEvals= 10000;
-    fitopt.MaxIter= 10000;
-% Fit Interpolated points
-[qossFit, qossGof] = fit(vdsVec',qossVec',qossFitFunc,fitopt);
-% Extract Parameters
-qossFitParams = coeffvalues(qossFit);
-a = qossFitParams(1);
-b = qossFitParams(2);
-c = qossFitParams(3);
-% As Analytical Function Qoss(vds)
-qossVdsFunc = @(x) 2.*a.*b.*sqrt((b + x)/b) + c.*x.^2./2 - 2.*a.*b;
-% Derivative for Coss(vds)
-cossVdsFunc = @(x) a./(1 + x./b).^0.5 + c.*x;
-
-
-figure(3)
-    plot(cossExtracted.VdsValid,qossLT*1e6,'*')
-    hold on
-    plot(vdsVec,qossVec*1e6)
-    plot(vdsVec,qossVdsFunc(vdsVec)*1e6)
-    grid on
-    title(append("Qoss(Vds), ",userDef.mosfetModel))
-    %ylim([1 10000])
-    xlabel("Drain-Source Voltage [V]")
-    ylabel("Output Charge[\mu C]")
-    hold off
-    legend("LTSpice Extracted","Interpolated Data","Curve Fit Function")
-    
-figure(4)
-    semilogy(cossExtracted.Vds,cossExtracted.Coss*1e12,'*')
-    hold on
-    semilogy(vdsVec,cossVdsFunc(vdsVec)*1e12)
-    grid on
-    title(append("Coss(Vds), ",userDef.mosfetModel))
-    ylim([1 10000])
-    xlabel("Drain-Source Voltage [V]")
-    ylabel("Output Capacitance[pF]")
-    hold off
-    legend("LTSpice Extracted","Interpolated Data","Curve Fit Function")
-    
-%% Output
-output.mosfetModel = userDef.mosfetModel;
-output.rdsonTjFunc = rdsonTjFunc;
-output.cossVdsFunc = cossVdsFunc;
-output.qossVdsFunc = qossVdsFunc;
-output.rdsonExtracted = rdsonExtracted;
-output.rdsonTable = [tjInterp',rdsonInterp'];
-output.cossExtracted = cossExtracted;
-output.cossTable = [vdsVec',cossVdsFunc(vdsVec)'];
-output.qossTable = [vdsVec',qossVec'];
-
 disp("EXTRACTION FINISHED")
 %% Future Work
 % Expandable: Thermal Impedance?
