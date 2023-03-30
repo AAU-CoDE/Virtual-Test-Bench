@@ -3,8 +3,9 @@ clear
 close all
 
 %% Specify MOSFET Model Filename 'mosfetFileName'.lib:
-mosfetFileName = 'G3R12MT12K'; % Specify the name of the .lib file, as found in your directory. (without .lib)
 
+% mosfetFileName = 'CoolSiC_MOSFET_1700V_G1_IMBF170RxxxM1_450-1000mOhm'; % Specify the name of the .lib file, as found in your directory. (without .lib)
+mosfetFileName = 'C2M0160120D - Packaged';
 %% Define Test Conditions
 
 % Rdson - Test Conditions
@@ -85,7 +86,7 @@ userDef.LTexePathBatch = replace(LTexeFullPath,'\','\\'); % Used with double bac
 userDef.mosfetFileName = mosfetFileName;
 userDef.mosfetModel = subcktNameFinder(userDef.LTlibPath,mosfetFileName);
 userDef.mosfetNodeList = mosfetNodeExtract(userDef.LTlibPath,userDef.mosfetFileName,userDef.mosfetModel);
-
+userDef.nodeListGeneral = generalizeNodeList(userDef.mosfetNodeList);
 
 %% Extract Parameters: Rdson(Tj)
 % Sweep
@@ -197,9 +198,9 @@ output.mosfetModel = userDef.mosfetModel;
 output.rdsonTjFunc = rdsonTjFunc;
 output.cossVdsFunc = cossVdsFunc;
 output.qossVdsFunc = qossVdsFunc;
-output.rdsonExtract = [rdsonExtracted.Tj',rdsonExtracted.Rdson'];
+output.rdsonExtracted = rdsonExtracted;
 output.rdsonTable = [tjInterp',rdsonInterp'];
-output.cossExtract = [cossExtracted.Vds',cossExtracted.Coss'];
+output.cossExtracted = cossExtracted;
 output.cossTable = [vdsVec',cossVdsFunc(vdsVec)'];
 output.qossTable = [vdsVec',qossVec'];
 
