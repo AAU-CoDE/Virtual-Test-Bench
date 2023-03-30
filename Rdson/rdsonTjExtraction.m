@@ -80,10 +80,12 @@ function rdsonExtracted = rdsonTjExtraction(Id,Vgs,Tj_array,userDef)
             end
         end
         % Check whether simulation is done 
-        while  rawData(sweepNr).time_vect(end) < 10e-9
+        tend = 0;
+        while  tend < 10e-9
             % Extract Data
             pause(0.5)
             rawData(sweepNr) = LTspice2Matlab(append(rdsonPath,ltFilename,'.raw'));
+            tend = rawData(sweepNr).time_vect(end);
         end
         
         % Extract Variables    
