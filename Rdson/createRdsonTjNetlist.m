@@ -8,7 +8,7 @@ function createRdsonTjNetlist(Id,Vgs,Tj,rdsonPath,netlistFilename,userDef)
     ltspiceFilename = replace(netlist,'.net','.asc');
 
     % Mosfet Model
-    mosfetPath = replace(append(userDef.LTlibPath,userDef.mosfetFileName),'\','\\');
+    mosfetPath = replace(append(userDef.LTlibPath,userDef.mosfetLibFileName),'\','\\');
     % Mosfet Model Parse
     if contains(userDef.mosfetModel,'G3R') == 1 % Encrypted, can't be parsed
         mosfet = append('XU2 drain gate 0 tj tj 0 ', replace(userDef.mosfetModel,'\','\\'));
