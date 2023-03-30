@@ -100,7 +100,7 @@ function cossExtracted = cossVdsExtraction(fcoss,VdsLims,nSampleTot,userDef);
                 end
                 
                 % Check whether simulation has started (by checking Vds)
-                VdsSim = LTretrieve("V(ds)",rawData(sweepNr));
+                VdsSim = LTretrieve("V(drain)",rawData(sweepNr));
                 if sweepNr > 1
                     VdsTest =  Vds_array(sweepNr-1);
                 else 
@@ -114,9 +114,11 @@ function cossExtracted = cossVdsExtraction(fcoss,VdsLims,nSampleTot,userDef);
             end
         end
         % Check whether simulation is done 
-        while rawData(sweepNr).time_vect(end) < 2/fcoss
+        tend = 0;
+        while tend < 2/fcoss
             pause(0.5)
             rawData(sweepNr) = LTspice2Matlab(append(cossPath,ltFilename,'.raw'));
+            tend = rawData(sweepNr).time_vect(end);
         end
  
         % Extract Variables    
@@ -125,7 +127,7 @@ function cossExtracted = cossVdsExtraction(fcoss,VdsLims,nSampleTot,userDef);
         else
             IacFull = LTretrieve("I(Vac)",rawData(sweepNr));
         end        
-        VacFull = LTretrieve("V(s)",rawData(sweepNr));
+        VacFull = LTretrieve("V(source)",rawData(sweepNr));
         tFull = rawData(sweepNr).time_vect;
         % Remove first Period:
         firstPeriodIdx = find(tFull > 1e-6,1);
