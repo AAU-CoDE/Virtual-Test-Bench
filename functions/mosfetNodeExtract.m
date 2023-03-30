@@ -15,11 +15,12 @@ function mosfetNodeList = mosfetNodeExtract(LTlibPath,mosfetFileName,mosfetModel
     modelLibText = libraryFile(:,1);
 
     for n = 1:numel(modelLibText)
-      if contains(modelLibText(n),append(".subckt ",mosfetModel)) == 1
+      if contains(modelLibText(n),append(".subckt ",mosfetModel)) == 1 || contains(modelLibText(n),append(".SUBCKT ",mosfetModel)) == 1
           mosfetNodeListIdx = n;
           mosfetNodeList = modelLibText(mosfetNodeListIdx);
             % remove .subckt
             mosfetNodeList = replace(mosfetNodeList,".subckt ","");
+            mosfetNodeList = replace(mosfetNodeList,".SUBCKT ","");
             % convert to string
             mosfetNodeList = char(mosfetNodeList);
             mosfetNodeList = replace(mosfetNodeList,mosfetModel,"");
