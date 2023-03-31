@@ -6,12 +6,12 @@ warning off
 
 %% Specify MOSFET Model Filename 'mosfetFileName'.lib:
 
-%     userDef. mosfetLibFileName = 'CoolSiC_MOSFET_1700V_G1_IMBF170RxxxM1_450-1000mOhm'; % Specify the name of the .lib file, as found in your directory. (without .lib)
-userDef.mosfetLibFileName = 'C2M0160120D - Packaged';
+userDef. mosfetLibFileName = ''; % Specify the name of the .lib file, as found in your directory. (without .lib)
+% E.g.: userDef.mosfetLibFileName = 'C2M0160120D - Packaged';
 
 % If .lib file name is different from model file name (after .subckt
 % statement within .lib file), or .lib file contains several models, but you know which model you want to extract, you can define the model name here and skip the dialogue 
-userDef.mosfetModel = 'C2M0160120D';
+% E.g.: userDef.mosfetModel = 'C2M0160120D';
 
 %% Set up paths
 % Automatically find working directory (No need to touch this)
@@ -24,7 +24,7 @@ userDef.mosfetModel = subcktNameFinder(userDef);
 userDef.mosfetNodeList = mosfetNodeExtract(userDef.LTlibPath,userDef.mosfetLibFileName,userDef.mosfetModel);
 userDef.nodeListGeneral = generalizeNodeList(userDef.mosfetNodeList);
 
-%% Extract Parameters: Rdson(Tj)
+%% Rdson(Tj)
 % Rdson - Test Conditions
 Vgs = 20;  % Gate-Source Voltage
 Id = 20; % Drain Current
