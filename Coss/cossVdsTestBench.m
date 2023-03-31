@@ -89,5 +89,6 @@ function output = cossVdsTestBench(fcoss,VdsLim,nSampleTot,userDef,plotOn)
     output.cossExtracted = cossExtracted;
     output.cossTable = [vdsVec',cossVdsFunc(vdsVec)'];
     output.qossTable = [vdsVec',qossVec'];
+    output.fitParams = qossFitParams;
 
 end
