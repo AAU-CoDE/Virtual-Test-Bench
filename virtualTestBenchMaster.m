@@ -36,26 +36,21 @@ Tj_array = 0.1:25:175;
 plotOn = 1; % Want a plot? 1 = Yes, 0 = No
 rdson = rdsonTjTestBench(Id,Vgs,Tj_array,userDef,plotOn);
 
-% Coss(Vds)/Qoss(Vds)
-% Coss - Test Conditions
-fcoss = 1e6; % 1MHz -  AC frequency
-VdsMax = 1200; % Drain-Source Voltage Limit
-VdsMin = 1e-2; % Lower Voltage Limit
-nSampleTot = 25; % Nr of samples
-
-
-plotOn = 1; % Want a plot? 1 = Yes, 0 = No
-coss = cossVdsTestBench(fcoss,[VdsMin,VdsMax],nSampleTot,userDef,plotOn);
-
-%% Ciss(Vds)
-fciss = 1e6; % 1MHz -  AC frequency
+%% Device Capacitances as a funtion of drain-source voltage
+% Test conditions
+fac = 1e6; % 1MHz -  AC frequency
 VdsMax = 650; % Drain-Source Voltage Limit
 VdsMin = 1e-2; % Lower Voltage Limit
 nSampleTot = 25; % Nr of samples
-
 plotOn = 1; % Want a plot? 1 = Yes, 0 = No
-ciss = cissVdsTestBench(fciss,[VdsMin,VdsMax],nSampleTot,userDef,plotOn);
+% Coss(Vds)
+coss = cossVdsTestBench(fac,[VdsMin,VdsMax],nSampleTot,userDef,plotOn);
 
+% Ciss(Vds)
+ciss = cissVdsTestBench(fac,[VdsMin,VdsMax],nSampleTot,userDef,plotOn);
+
+% Crss(Vds)
+crss = crssVdsTestBench(fac,[VdsMin,VdsMax],nSampleTot,userDef,plotOn);
 
 %%
 disp("EXTRACTION FINISHED")
