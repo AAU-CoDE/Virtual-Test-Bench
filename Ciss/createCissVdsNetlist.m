@@ -12,12 +12,12 @@ function createCissVdsNetlist(fciss,Vds,cissPath,netlistFilename,userDef)
     % Mosfet Model Parse (Make as standalone function in the future)
    % .subckt port parse 
     if contains(userDef.mosfetModel,'G3R') == 1 % Encrypted, can't be parsed
-         mosfet = append('XU2 drain source source source tj tj  ', replace(userDef.mosfetModel,'\','\\'));
+         mosfet = append('XU2 drain gate source source tj tj  ', replace(userDef.mosfetModel,'\','\\'));
     else
        
        mosfet = append('XU2 ',userDef.nodeListGeneral,' ', replace(userDef.mosfetModel,'\','\\'));       
-        mosfet = replace(mosfet,' source ',' 0 ');       
-       mosfet = replace(mosfet,' ksource ',' source ');
+       mosfet = replace(mosfet,' source ',' 0 ');       
+       mosfet = replace(mosfet,' ksource ',' 0 ');
 
     end
 
