@@ -70,6 +70,6 @@ function output = crssVdsTestBench(fcrss,VdsLim,nSampleTot,userDef,plotOn)
     output.crssExtracted = crssExtracted;
     output.crssTable = [vdsVec',crssVec'];
     output.qrssTable = [vdsVec',qrssVec'];
-    output.fitParams = crssFitParams;
+%     output.fitParams = crssFitParams;
 
 end
